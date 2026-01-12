@@ -12,5 +12,6 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <App />
+    <script type="module" src="./index.tsx"></script>
   </React.StrictMode>
 );
