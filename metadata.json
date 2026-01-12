@@ -1,0 +1,5 @@
+{
+  "name": "냉장고 요리 도우미 (Chef Gemini)",
+  "description": "냉장고 속 남은 재료와 식사 시간, 선호하는 요리 스타일을 입력하면 AI가 최적의 레시피 3가지를 제안해주는 스마트 요리 가이드입니다.",
+  "requestFramePermissions": []
+}
