@@ -24,8 +24,6 @@ import {
   Plus,
   Trash2,
   Check,
-  Key,
-  ExternalLink,
   Users,
   Loader2
 } from 'lucide-react';
@@ -93,21 +91,8 @@ const App: React.FC = () => {
   const [shoppingList, setShoppingList] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isKeySelected, setIsKeySelected] = useState<boolean | null>(null);
 
   const currentTheme = THEMES[theme];
-
-  useEffect(() => {
-    const checkKey = async () => {
-      try {
-        const hasKey = await window.aistudio.hasSelectedApiKey();
-        setIsKeySelected(hasKey);
-      } catch (e) {
-        setIsKeySelected(false);
-      }
-    };
-    checkKey();
-  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('gemini-chef-shopping-list');
@@ -123,11 +108,6 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('gemini-chef-shopping-list', JSON.stringify(shoppingList));
   }, [shoppingList]);
-
-  const handleSelectKey = async () => {
-    await window.aistudio.openSelectKey();
-    setIsKeySelected(true);
-  };
 
   const handleGenerate = async () => {
     if (!ingredients.trim()) {
@@ -158,9 +138,6 @@ const App: React.FC = () => {
       }, 100);
     } catch (err: any) {
       setError(err.message || '알 수 없는 오류가 발생했습니다.');
-      if (err.message?.includes("다시 선택")) {
-        setIsKeySelected(false);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -188,56 +165,9 @@ const App: React.FC = () => {
     }
   };
 
-  if (isKeySelected === false) {
-    return (
-      <div className={`min-h-screen flex items-center justify-center p-6 ${currentTheme.bg}`}>
-        <div className="max-w-md w-full bg-white rounded-[50px] shadow-2xl p-10 text-center border-8 border-white animate-in zoom-in duration-500">
-          <div className={`${currentTheme.accent} w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg rotate-3`}>
-            <ChefHat className="text-white w-10 h-10" />
-          </div>
-          <h2 className="text-3xl font-black text-gray-900 mb-4">반가워요! <br/><span className={currentTheme.text}>말랑 셰프</span>예요</h2>
-          <p className="text-gray-600 font-medium mb-8 leading-relaxed">
-            맛있는 레시피를 제안해드리기 위해<br/> 
-            먼저 <span className="font-bold">API 키</span>를 선택해주세요!
-          </p>
-          <div className="bg-gray-50 rounded-3xl p-6 mb-8 text-left border-4 border-gray-50">
-            <h4 className="text-sm font-black text-gray-800 mb-3 flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-400" /> 꼭 확인해주세요!
-            </h4>
-            <ul className="text-xs text-gray-500 space-y-2 font-medium">
-              <li>• 유료 결제가 설정된 GCP 프로젝트의 키가 필요해요.</li>
-              <li>• 선택된 키는 안전하게 앱의 기능에만 사용됩니다.</li>
-              <li>• 빌링 관련 정보는 아래 문서에서 확인 가능합니다.</li>
-            </ul>
-            <a 
-              href="https://ai.google.dev/gemini-api/docs/billing" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`mt-4 inline-flex items-center gap-1.5 text-xs font-bold ${currentTheme.text} hover:underline`}
-            >
-              빌링 가이드 보러가기 <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-          <button
-            onClick={handleSelectKey}
-            className={`w-full py-5 ${currentTheme.accent} text-white text-xl font-black rounded-[30px] shadow-xl hover:brightness-105 transition-all flex items-center justify-center gap-3`}
-          >
-            <Key className="w-6 h-6" />
-            <span>API 키 선택하기</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (isKeySelected === null) {
-    return <div className={`min-h-screen ${currentTheme.bg} flex items-center justify-center`}>
-      <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
-    </div>;
-  }
-
   return (
     <div className={`min-h-screen transition-colors duration-500 pb-20 overflow-x-hidden relative ${currentTheme.bg}`}>
+      {/* Decorative Background Elements */}
       <div className="fixed inset-0 pointer-events-none opacity-20">
         <div className="absolute top-20 left-10 animate-bounce" style={{ animationDuration: '3s' }}>
           <currentTheme.icon size={64} className={currentTheme.text} />
@@ -256,6 +186,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 transition-colors">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -265,13 +196,6 @@ const App: React.FC = () => {
             <h1 className={`text-xl font-black ${currentTheme.text} tracking-tight`}>말랑 셰프 제미니</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button 
-              onClick={handleSelectKey}
-              className="text-gray-400 hover:text-blue-500 transition-colors p-2"
-              title="API 키 변경"
-            >
-              <Key className="w-5 h-5" />
-            </button>
             {recipes.length > 0 && (
               <button 
                 onClick={resetForm}
@@ -297,6 +221,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 pt-12 relative z-10">
+        {/* Hero Section */}
         <div className="text-center mb-12">
           <span className="inline-block px-4 py-1.5 bg-white rounded-full text-sm font-bold shadow-sm mb-4 border border-gray-100">
             {currentTheme.symbol} 당신의 냉장고 메이트
@@ -308,8 +233,10 @@ const App: React.FC = () => {
           <p className="text-gray-600 font-medium">귀여운 레시피로 맛있는 하루를 만들어봐요!</p>
         </div>
 
+        {/* Input Card */}
         <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200/50 border-4 border-white p-6 md:p-10 mb-12">
           <div className="space-y-8">
+            {/* Ingredients Input */}
             <div>
               <label className="block text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <Utensils className={`w-5 h-5 ${currentTheme.text}`} />
@@ -324,6 +251,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Meal Time Selector */}
               <div>
                 <label className="block text-base font-bold text-gray-800 mb-4">지금은 어떤 시간?</label>
                 <div className="grid grid-cols-3 gap-3">
@@ -348,6 +276,7 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* Cuisine Type Selector */}
               <div>
                 <label className="block text-base font-bold text-gray-800 mb-4">어떤 스타일?</label>
                 <div className="flex flex-wrap gap-2">
@@ -391,6 +320,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* Action Button */}
             <button
               onClick={handleGenerate}
               disabled={isLoading || !ingredients.trim()}
@@ -411,6 +341,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
+        {/* Shopping List Section (Memo) */}
         {shoppingList.length > 0 && (
           <div className="mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="bg-white rounded-[40px] shadow-xl border-4 border-white p-6 md:p-8">
@@ -452,6 +383,7 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* Error State */}
         {error && (
           <div className="bg-red-50 border-4 border-red-100 text-red-600 p-5 rounded-[25px] font-bold flex items-start gap-4 mb-8">
             <Info className="w-6 h-6 mt-0.5 shrink-0" />
@@ -459,6 +391,7 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* Results Section */}
         {recipes.length > 0 && (
           <div id="results-section" className="space-y-12 pb-20">
             <div className="flex items-center gap-4 justify-center">
@@ -483,6 +416,7 @@ const App: React.FC = () => {
         )}
       </main>
 
+      {/* Footer */}
       <footer className="mt-20 border-t-4 border-white/50 py-12 text-center text-gray-400 font-bold">
         <p className="flex items-center justify-center gap-2">
           Made with <Heart className="w-4 h-4 text-pink-400 fill-pink-400" /> by AI Chef Gemini
@@ -503,6 +437,7 @@ interface RecipeCardProps {
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, index, theme, onToggleItem, shoppingList }) => {
   return (
     <div className={`bg-white rounded-[50px] overflow-hidden shadow-2xl shadow-gray-200/50 border-8 border-white flex flex-col md:flex-row recipe-card-enter hover:scale-[1.01] transition-transform duration-300`} style={{ animationDelay: `${index * 0.2}s` }}>
+      {/* Side Profile with Image */}
       <div className={`md:w-1/3 ${theme.light} flex flex-col items-center justify-center p-8 relative min-h-[300px]`}>
         <div className="absolute top-4 left-4 z-10">
            <span className={`inline-block px-4 py-1 ${theme.accent} text-white text-xs font-black rounded-full shadow-sm`}>
@@ -510,6 +445,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, index, theme, onToggleI
           </span>
         </div>
         
+        {/* Image Container */}
         <div className="relative w-48 h-48 mb-6 group">
           <div className="absolute inset-0 bg-white rounded-[35px] shadow-lg ring-8 ring-white/50 overflow-hidden">
             {recipe.imageUrl ? (
@@ -536,7 +472,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, index, theme, onToggleI
         </div>
       </div>
 
+      {/* Content */}
       <div className="md:w-2/3 p-8 md:p-12 bg-white relative">
+        {/* Meta */}
         <div className="flex flex-wrap gap-4 mb-8">
           <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${theme.light} ${theme.text} font-bold text-sm`}>
             <Clock className="w-4 h-4" />
@@ -552,6 +490,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, index, theme, onToggleI
           </div>
         </div>
 
+        {/* Summary Bubble */}
         <div className={`relative ${theme.light} rounded-[30px] p-6 mb-8 border-4 border-white shadow-sm`}>
           <p className="text-gray-700 font-medium leading-relaxed italic text-center">
             "{recipe.summary}"
@@ -559,6 +498,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, index, theme, onToggleI
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Ingredients */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h5 className="text-lg font-black text-gray-900 flex items-center gap-2">
@@ -592,6 +532,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, index, theme, onToggleI
             </div>
           </div>
 
+          {/* Instructions */}
           <div>
             <h5 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
               <ArrowRight className={`w-5 h-5 ${theme.text}`} />
